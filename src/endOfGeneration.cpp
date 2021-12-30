@@ -11,22 +11,18 @@
 // At the end of each generation, we save a video file (if p.saveVideo is true) and
 // print some genomic statistics to stdout (if p.updateGraphLog is true).
 
-void endOfGeneration(unsigned generation)
-{
-    {
-        if (p.saveVideo &&
-                ((generation % p.videoStride) == 0
-                 || generation <= p.videoSaveFirstFrames
-                 || (generation >= p.replaceBarrierTypeGenerationNumber
-                     && generation <= p.replaceBarrierTypeGenerationNumber + p.videoSaveFirstFrames))) {
-            imageWriter.saveGenerationVideo(generation);
-        }
+void endOfGeneration(unsigned generation) {
+    if (p.saveVideo &&
+            ((generation % p.videoStride) == 0
+                || generation <= p.videoSaveFirstFrames
+                || (generation >= p.replaceBarrierTypeGenerationNumber
+                    && generation <= p.replaceBarrierTypeGenerationNumber + p.videoSaveFirstFrames))) {
+        imageWriter.saveGenerationVideo(generation);
     }
 
-    {
-        if (p.updateGraphLog && (generation == 1 || ((generation % p.updateGraphLogStride) == 0))) {
+    if (p.updateGraphLog && (generation == 1 || ((generation % p.updateGraphLogStride) == 0))) {
 #pragma GCC diagnostic ignored "-Wunused-result"
-            std::system(p.graphLogUpdateCommand.c_str());
-        }
+        std::system(p.graphLogUpdateCommand.c_str());
     }
+    
 }

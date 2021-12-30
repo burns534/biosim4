@@ -64120,7 +64120,10 @@ namespace cimg_library_suffixed {
             codec2 = _codec[1]?cimg::uppercase(_codec[2]):0,
             codec3 = _codec[2]?cimg::uppercase(_codec[3]):0;
           cimg::mutex(9);
-          writers[index] = new cv::VideoWriter(filename,_cimg_fourcc(codec0,codec1,codec2,codec3),fps,cv::Size(W,H));
+  
+          // writers[index] = new cv::VideoWriter(filename,_cimg_fourcc(codec0,codec1,codec2,codec3),fps,cv::Size(W,H));
+          writers[index] = new cv::VideoWriter(filename,0x31637661,fps,cv::Size(W,H));
+
           if (!writers[index]->isOpened()) {
             delete writers[index];
             writers[index] = 0;

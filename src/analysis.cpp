@@ -232,20 +232,20 @@ void Indiv::printIGraphEdgeList() const
 {
     for (auto & conn : nnet.connections) {
         if (conn.sourceType == SENSOR) {
-            std::cout << sensorShortName((Sensor)(conn.sourceNum));
+            sampleGenomeOutfile << sensorShortName((Sensor)(conn.sourceNum));
         } else {
-            std::cout << "N" << std::to_string(conn.sourceNum);
+            sampleGenomeOutfile << "N" << std::to_string(conn.sourceNum);
         }
 
-        std::cout << " ";
+        sampleGenomeOutfile << " ";
 
         if (conn.sinkType == ACTION) {
-            std::cout << actionShortName((Action)(conn.sinkNum));
+            sampleGenomeOutfile << actionShortName((Action)(conn.sinkNum));
         } else {
-            std::cout << "N" << std::to_string(conn.sinkNum);
+            sampleGenomeOutfile << "N" << std::to_string(conn.sinkNum);
         }
 
-        std::cout << " " << std::to_string(conn.weight) << std::endl;
+        sampleGenomeOutfile << " " << std::to_string(conn.weight) << "\n";
     }
 }
 

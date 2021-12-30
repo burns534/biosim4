@@ -4,6 +4,7 @@
 // Global simulator parameters
 
 #include <string>
+#include <fstream>
 
 // To add a new parameter:
 //    1. Add a member to struct Params in params.h.
@@ -16,6 +17,7 @@
 
 enum class RunMode { STOP, RUN, PAUSE, ABORT };
 extern RunMode runMode;
+extern std::ofstream sampleGenomeOutfile;
 
 // A private copy of Params is initialized by ParamManager::init(), then modified by
 // UI events by ParamManager::uiMonitor(). The main simulator thread can get an
@@ -76,6 +78,9 @@ public:
     void registerConfigFile(const char *filename);
     void updateFromConfigFile();
     void checkParameters();
+    void appendImageDir(std::string s) {
+        privParams.imageDir += "/" + s;
+    }
 private:
     Params privParams;
     std::string configFilename;

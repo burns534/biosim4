@@ -3,7 +3,7 @@
 import igraph
 
 # load data into a graph
-g = igraph.Graph.Read_Ncol('net.txt', names=True, weights=True)
+g = igraph.Graph.Read_Ncol('nnet.txt', names=True, weights=True)
 
 for v in g.vs:
 	v['size'] = 35
@@ -68,6 +68,6 @@ else:
     bbox = (8000,8000)
     layout = 'fruchterman_reingold'
 
-igraph.plot(g, "net.svg", edge_curved=True, bbox=bbox, margin=64, layout=layout)
+igraph.plot(g, "net.png", edge_curved=True, bbox=bbox, margin=64, layout=layout)
 
 

@@ -17,8 +17,6 @@
 #include "simulator.h"     // the simulator data structures
 #include "imageWriter.h"   // this is for generating the movies
 
-
-
 extern void initializeGeneration0();
 extern unsigned spawnNewGeneration(unsigned generation, unsigned murderCount);
 extern void displaySampleGenomes(unsigned count);
@@ -110,12 +108,11 @@ void simulator(int argc, char **argv)
     // variable p after paramManager is initialized.
     // Todo: remove the hardcoded parameter filename.
     paramManager.setDefaults();
-    paramManager.registerConfigFile(argc > 1 ? argv[1] : "biosim4.ini");
+    paramManager.registerConfigFile("biosim4.ini");
     paramManager.updateFromConfigFile();
     paramManager.checkParameters(); // check and report any problems
 
-    // randomUint.initialize(); // seed the RNG for main-thread use
-
+    // paramManager.appendImageDir(argv[1]); // file to store videos in
     // Allocate container space. Once allocated, these container elements
     // will be reused in each new generation.
     grid.init(p.sizeX, p.sizeY); // the land on which the peeps live

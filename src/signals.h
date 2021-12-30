@@ -7,8 +7,6 @@
 #include <cstdint>
 #include "basicTypes.h"
 
-
-
 // Usage: uint8_t magnitude = signals[layer][x][y];
 // or             magnitude = signals.getMagnitude(layer, Coord);
 

@@ -19,6 +19,7 @@
 //    4. Add a line to the user's parameter file (default name biosim4.ini)
 
 
+std::ofstream sampleGenomeOutfile;
 
 void ParamManager::setDefaults()
 {
@@ -66,6 +67,7 @@ void ParamManager::setDefaults()
     privParams.deterministic = false;
     privParams.RNGSeed = 12345678;
     privParams.graphLogUpdateCommand = "/usr/bin/gnuplot --persist ./tools/graphlog.gp";
+    sampleGenomeOutfile.open("./tools/nnet.txt", std::ofstream::out);
 }
 
 
@@ -134,148 +136,102 @@ void ParamManager::ingestParameter(std::string name, std::string val)
     bool isBool = checkIfBool(val);
     bool bVal = getBoolVal(val);
 
-    do {
-        if (name == "sizex" && isUint && uVal >= 2 && uVal <= (uint16_t)-1) {
-            privParams.sizeX = uVal; break;
-        }
-        else if (name == "sizey" && isUint && uVal >= 2 && uVal <= (uint16_t)-1) {
-            privParams.sizeY = uVal; break;
-        }
-        else if (name == "challenge" && isUint && uVal < (uint16_t)-1) {
-            privParams.challenge = uVal; break;
-        }
-        else if (name == "genomeinitiallengthmin" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
-            privParams.genomeInitialLengthMin = uVal; break;
-        }
-        else if (name == "genomeinitiallengthmax" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
-            privParams.genomeInitialLengthMax = uVal; break;
-        }
-        else if (name == "logdir") {
-            privParams.logDir = val; break;
-        }
-        else if (name == "imagedir") {
-            privParams.imageDir = val; break;
-        }
-        else if (name == "population" && isUint && uVal > 0 && uVal < (uint32_t)-1) {
-            privParams.population = uVal; break;
-        }
-        else if (name == "stepspergeneration" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
-            privParams.stepsPerGeneration = uVal; break;
-        }
-        else if (name == "maxgenerations" && isUint && uVal > 0 && uVal < 0x7fffffff) {
-            privParams.maxGenerations = uVal; break;
-        }
-        else if (name == "barriertype" && isUint && uVal < (uint32_t)-1) {
-            privParams.barrierType = uVal; break;
-        }
-        else if (name == "replacebarriertype" && isUint && uVal < (uint32_t)-1) {
-            privParams.replaceBarrierType = uVal; break;
-        }
-        else if (name == "replacebarriertypegenerationnumber" && isInt && iVal >= -1) {
-            privParams.replaceBarrierTypeGenerationNumber = (iVal == -1 ? (uint32_t)-1 : iVal); break;
-        }
-        else if (name == "numthreads" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
-            privParams.numThreads = uVal; break;
-        }
-        else if (name == "signallayers" && isUint && uVal < (uint16_t)-1) {
-            privParams.signalLayers = uVal; break;
-        }
-        else if (name == "genomemaxlength" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
-            privParams.genomeMaxLength = uVal; break;
-        }
-        else if (name == "maxnumberneurons" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
-            privParams.maxNumberNeurons = uVal; break;
-        }
-        else if (name == "pointmutationrate" && isFloat && dVal >= 0.0 && dVal <= 1.0) {
-            privParams.pointMutationRate = dVal; break;
-        }
-        else if (name == "geneinsertiondeletionrate" && isFloat && dVal >= 0.0 && dVal <= 1.0) {
-            privParams.geneInsertionDeletionRate = dVal; break;
-        }
-        else if (name == "deletionratio" && isFloat && dVal >= 0.0 && dVal <= 1.0) {
-            privParams.deletionRatio = dVal; break;
-        }
-        else if (name == "killenable" && isBool) {
-            privParams.killEnable = bVal; break;
-        }
-        else if (name == "sexualreproduction" && isBool) {
-            privParams.sexualReproduction = bVal; break;
-        }
-        else if (name == "chooseparentsbyfitness" && isBool) {
-            privParams.chooseParentsByFitness = bVal; break;
-        }
-        else if (name == "populationsensorradius" && isFloat && dVal > 0.0) {
-            privParams.populationSensorRadius = dVal; break;
-        }
-        else if (name == "signalsensorradius" && isFloat && dVal > 0.0) {
-            privParams.signalSensorRadius = dVal; break;
-        }
-        else if (name == "responsiveness" && isFloat && dVal >= 0.0) {
-            privParams.responsiveness = dVal; break;
-        }
-        else if (name == "responsivenesscurvekfactor" && isUint && uVal >= 1 && uVal <= 20) {
-            privParams.responsivenessCurveKFactor = uVal; break;
-        }
-        else if (name == "longprobedistance" && isUint && uVal > 0) {
-            privParams.longProbeDistance = uVal; break;
-        }
-        else if (name == "shortprobebarrierdistance" && isUint && uVal > 0) {
-            privParams.shortProbeBarrierDistance = uVal; break;
-        }
-        else if (name == "valencesaturationmag" && isFloat && dVal >= 0.0) {
-            privParams.valenceSaturationMag = dVal; break;
-        }
-        else if (name == "savevideo" && isBool) {
-            privParams.saveVideo = bVal; break;
-        }
-        else if (name == "videostride" && isUint && uVal > 0) {
-            privParams.videoStride = uVal; break;
-        }
-        else if (name == "videosavefirstframes" && isUint) {
-            privParams.videoSaveFirstFrames = uVal; break;
-        }
-        else if (name == "displayscale" && isUint && uVal > 0) {
-            privParams.displayScale = uVal; break;
-        }
-        else if (name == "agentsize" && isFloat && dVal > 0.0) {
-            privParams.agentSize = dVal; break;
-        }
-        else if (name == "genomeanalysisstride" && isUint && uVal > 0) {
-            privParams.genomeAnalysisStride = uVal; break;
-        }
-        else if (name == "genomeanalysisstride" && val == "videoStride") {
-            privParams.genomeAnalysisStride = privParams.videoStride; break;
-        }
-        else if (name == "displaysamplegenomes" && isUint) {
-            privParams.displaySampleGenomes = uVal; break;
-        }
-        else if (name == "genomecomparisonmethod" && isUint) {
-            privParams.genomeComparisonMethod = uVal; break;
-        }
-        else if (name == "updategraphlog" && isBool) {
-            privParams.updateGraphLog = bVal; break;
-        }
-        else if (name == "updategraphlogstride" && isUint && uVal > 0) {
-            privParams.updateGraphLogStride = uVal; break;
-        }
-        else if (name == "updategraphlogstride" && val == "videoStride") {
-            privParams.updateGraphLogStride = privParams.videoStride; break;
-        }
-        else if (name == "deterministic" && isBool) {
-            privParams.deterministic = bVal; break;
-        }
-        else if (name == "rngseed" && isUint) {
-            privParams.RNGSeed = uVal; break;
-        }
-        else {
-            std::cout << "Invalid param: " << name << " = " << val << std::endl;
-        }
-    } while (0);
+    if (name == "sizex" && isUint && uVal >= 2 && uVal <= (uint16_t)-1) {
+        privParams.sizeX = uVal; 
+    } else if (name == "sizey" && isUint && uVal >= 2 && uVal <= (uint16_t)-1) {
+        privParams.sizeY = uVal; 
+    } else if (name == "challenge" && isUint && uVal < (uint16_t)-1) {
+        privParams.challenge = uVal; 
+    } else if (name == "genomeinitiallengthmin" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
+        privParams.genomeInitialLengthMin = uVal; 
+    } else if (name == "genomeinitiallengthmax" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
+        privParams.genomeInitialLengthMax = uVal; 
+    } else if (name == "logdir") {
+        privParams.logDir = val; 
+    } else if (name == "imagedir") {
+        privParams.imageDir = val; 
+    } else if (name == "population" && isUint && uVal > 0 && uVal < (uint32_t)-1) {
+        privParams.population = uVal; 
+    } else if (name == "stepspergeneration" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
+        privParams.stepsPerGeneration = uVal; 
+    } else if (name == "maxgenerations" && isUint && uVal > 0 && uVal < 0x7fffffff) {
+        privParams.maxGenerations = uVal; 
+    } else if (name == "barriertype" && isUint && uVal < (uint32_t)-1) {
+        privParams.barrierType = uVal; 
+    } else if (name == "replacebarriertype" && isUint && uVal < (uint32_t)-1) {
+        privParams.replaceBarrierType = uVal; 
+    } else if (name == "replacebarriertypegenerationnumber" && isInt && iVal >= -1) {
+        privParams.replaceBarrierTypeGenerationNumber = (iVal == -1 ? (uint32_t)-1 : iVal); 
+    } else if (name == "numthreads" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
+        privParams.numThreads = uVal; 
+    } else if (name == "signallayers" && isUint && uVal < (uint16_t)-1) {
+        privParams.signalLayers = uVal; 
+    } else if (name == "genomemaxlength" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
+        privParams.genomeMaxLength = uVal; 
+    } else if (name == "maxnumberneurons" && isUint && uVal > 0 && uVal < (uint16_t)-1) {
+        privParams.maxNumberNeurons = uVal; 
+    } else if (name == "pointmutationrate" && isFloat && dVal >= 0.0 && dVal <= 1.0) {
+        privParams.pointMutationRate = dVal; 
+    } else if (name == "geneinsertiondeletionrate" && isFloat && dVal >= 0.0 && dVal <= 1.0) {
+        privParams.geneInsertionDeletionRate = dVal; 
+    } else if (name == "deletionratio" && isFloat && dVal >= 0.0 && dVal <= 1.0) {
+        privParams.deletionRatio = dVal; 
+    } else if (name == "killenable" && isBool) {
+        privParams.killEnable = bVal; 
+    } else if (name == "sexualreproduction" && isBool) {
+        privParams.sexualReproduction = bVal; 
+    } else if (name == "chooseparentsbyfitness" && isBool) {
+        privParams.chooseParentsByFitness = bVal; 
+    } else if (name == "populationsensorradius" && isFloat && dVal > 0.0) {
+        privParams.populationSensorRadius = dVal; 
+    } else if (name == "signalsensorradius" && isFloat && dVal > 0.0) {
+        privParams.signalSensorRadius = dVal; 
+    } else if (name == "responsiveness" && isFloat && dVal >= 0.0) {
+        privParams.responsiveness = dVal; 
+    } else if (name == "responsivenesscurvekfactor" && isUint && uVal >= 1 && uVal <= 20) {
+        privParams.responsivenessCurveKFactor = uVal; 
+    } else if (name == "longprobedistance" && isUint && uVal > 0) {
+        privParams.longProbeDistance = uVal; 
+    } else if (name == "shortprobebarrierdistance" && isUint && uVal > 0) {
+        privParams.shortProbeBarrierDistance = uVal; 
+    } else if (name == "valencesaturationmag" && isFloat && dVal >= 0.0) {
+        privParams.valenceSaturationMag = dVal; 
+    } else if (name == "savevideo" && isBool) {
+        privParams.saveVideo = bVal; 
+    } else if (name == "videostride" && isUint && uVal > 0) {
+        privParams.videoStride = uVal; 
+    } else if (name == "videosavefirstframes" && isUint) {
+        privParams.videoSaveFirstFrames = uVal; 
+    } else if (name == "displayscale" && isUint && uVal > 0) {
+        privParams.displayScale = uVal; 
+    } else if (name == "agentsize" && isFloat && dVal > 0.0) {
+        privParams.agentSize = dVal; 
+    } else if (name == "genomeanalysisstride" && isUint && uVal > 0) {
+        privParams.genomeAnalysisStride = uVal; 
+    } else if (name == "genomeanalysisstride" && val == "videoStride") {
+        privParams.genomeAnalysisStride = privParams.videoStride; 
+    } else if (name == "displaysamplegenomes" && isUint) {
+        privParams.displaySampleGenomes = uVal; 
+    } else if (name == "genomecomparisonmethod" && isUint) {
+        privParams.genomeComparisonMethod = uVal; 
+    } else if (name == "updategraphlog" && isBool) {
+        privParams.updateGraphLog = bVal; 
+    } else if (name == "updategraphlogstride" && isUint && uVal > 0) {
+        privParams.updateGraphLogStride = uVal; 
+    } else if (name == "updategraphlogstride" && val == "videoStride") {
+        privParams.updateGraphLogStride = privParams.videoStride; 
+    } else if (name == "deterministic" && isBool) {
+        privParams.deterministic = bVal; 
+    } else if (name == "rngseed" && isUint) {
+        privParams.RNGSeed = uVal; 
+    } else if (name == "samplegenomeoutfile") {
+        sampleGenomeOutfile.open(val, std::ofstream::out);
+    } else {
+        std::cout << "Invalid param: " << name << " = " << val << std::endl;
+    }
 }
 
-
-void ParamManager::updateFromConfigFile()
-{
+void ParamManager::updateFromConfigFile() {
     // std::ifstream is RAII, i.e. no need to call close
     std::ifstream cFile(configFilename.c_str());
     if (cFile.is_open()) {

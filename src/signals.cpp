@@ -4,7 +4,7 @@
 #include <cstdint>
 #include "simulator.h"
 
-namespace BS {
+
 
 void Signals::init(uint16_t numLayers, uint16_t sizeX, uint16_t sizeY)
 {
@@ -23,21 +23,18 @@ void Signals::increment(uint16_t layerNum, Coord loc)
     constexpr uint8_t centerIncreaseAmount = 2;
     constexpr uint8_t neighborIncreaseAmount = 1;
 
-#pragma omp critical
-    {
-        visitNeighborhood(loc, radius, [layerNum](Coord loc) {
-            if (signals[layerNum][loc.x][loc.y] < SIGNAL_MAX) {
-                signals[layerNum][loc.x][loc.y] =
-                        std::min<unsigned>(SIGNAL_MAX,
-                                           signals[layerNum][loc.x][loc.y] + neighborIncreaseAmount);
-            }
-        });
-
+    visitNeighborhood(loc, radius, [layerNum](Coord loc) {
         if (signals[layerNum][loc.x][loc.y] < SIGNAL_MAX) {
             signals[layerNum][loc.x][loc.y] =
-                        std::min<unsigned>(SIGNAL_MAX,
-                                           signals[layerNum][loc.x][loc.y] + centerIncreaseAmount);
+                    std::min<unsigned>(SIGNAL_MAX,
+                                        signals[layerNum][loc.x][loc.y] + neighborIncreaseAmount);
         }
+    });
+
+    if (signals[layerNum][loc.x][loc.y] < SIGNAL_MAX) {
+        signals[layerNum][loc.x][loc.y] =
+                    std::min<unsigned>(SIGNAL_MAX,
+                                        signals[layerNum][loc.x][loc.y] + centerIncreaseAmount);
     }
 }
 
@@ -58,4 +55,4 @@ void Signals::fade(unsigned layerNum)
     }
 }
 
-} // end namespace BS
+

@@ -8,8 +8,6 @@
 #include <string>
 #include "simulator.h"
 
-namespace BS {
-
 // This converts sensor numbers to descriptive strings.
 std::string sensorName(Sensor sensor)
 {
@@ -371,5 +369,3 @@ void displaySampleGenomes(unsigned count)
 
     displaySensorActionReferenceCounts();
 }
-
-} // end namespace BS

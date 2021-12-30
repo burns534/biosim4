@@ -9,9 +9,7 @@
 #include "grid.h"         // the 2D world where the peeps live
 #include "signals.h"      // a 2D array of pheromones that overlay the world grid
 #include "peeps.h"        // the 2D world where the peeps live
-#include "random.h"
 
-namespace BS {
 
 // Some of the survival challenges to try. Some are interesting, some
 // not so much. Fine-tune the challenges by tweaking the corresponding code
@@ -48,6 +46,6 @@ extern void simulator(int argc, char **argv);
 // function will call f(Coord) once for each location inside the specified area.
 extern void visitNeighborhood(Coord loc, float radius, std::function<void(Coord)> f);
 
-} // end namespace BS
+
 
 #endif // SIMULATOR_H_INCLUDED

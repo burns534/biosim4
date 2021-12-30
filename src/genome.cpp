@@ -9,7 +9,7 @@
 #include "simulator.h"
 #include "random.h"
 
-namespace BS {
+
 
 // This structure is used while converting the connection list to a
 // neural net. This helps us to find neurons that don't feed anything
@@ -43,9 +43,9 @@ Gene makeRandomGene()
 {
     Gene gene;
 
-    gene.sourceType = randomUint() & 1;
+    gene.sourceType = rand() & 1;
     gene.sourceNum = (uint16_t)randomUint(0, 0x7fff);
-    gene.sinkType = randomUint() & 1;
+    gene.sinkType = rand() & 1;
     gene.sinkNum = (uint16_t)randomUint(0, 0x7fff);
     gene.weight = Gene::makeRandomWeight();
 
@@ -277,7 +277,7 @@ void randomBitFlip(Genome &genome)
     if (method == 0) {
         ((uint8_t *)&genome[0])[byteIndex] ^= bitIndex8;
     } else if (method == 1) {
-        float chance = randomUint() / (float)RANDOM_UINT_MAX; // 0..1
+        float chance = rand() / (float)RAND_MAX; // 0..1
         if (chance < 0.2) { // sourceType
             genome[elementIndex].sourceType ^= 1;
         } else if (chance < 0.4) { // sinkType
@@ -302,7 +302,7 @@ void randomBitFlip(Genome &genome)
 void cropLength(Genome &genome, unsigned length)
 {
     if (genome.size() > length && length > 0) {
-        if (randomUint() / (float)RANDOM_UINT_MAX < 0.5) {
+        if (rand() / (float)RAND_MAX < 0.5) {
             // trim front
             unsigned numberElementsToTrim = genome.size() - length;
             genome.erase(genome.begin(), genome.begin() + numberElementsToTrim);
@@ -320,8 +320,8 @@ void cropLength(Genome &genome, unsigned length)
 void randomInsertDeletion(Genome &genome)
 {
     float probability = p.geneInsertionDeletionRate;
-    if (randomUint() / (float)RANDOM_UINT_MAX < probability) {
-        if (randomUint() / (float)RANDOM_UINT_MAX < p.deletionRatio) {
+    if (rand() / (float)RAND_MAX < probability) {
+        if (rand() / (float)RAND_MAX < p.deletionRatio) {
             // deletion
             if (genome.size() > 1) {
                 genome.erase(genome.begin() + randomUint(0, genome.size() - 1));
@@ -341,7 +341,7 @@ void applyPointMutations(Genome &genome)
 {
     unsigned numberOfGenes = genome.size();
     while (numberOfGenes-- > 0) {
-        if ((randomUint() / (float)RANDOM_UINT_MAX) < p.pointMutationRate) {
+        if ((rand() / (float)RAND_MAX) < p.pointMutationRate) {
             randomBitFlip(genome);
         }
     }
@@ -406,7 +406,7 @@ Genome generateChildGenome(const std::vector<Genome> &parentGenomes)
         // Trim to length = average length of parents
         unsigned sum = g1.size() + g2.size();
         // If average length is not an integral number, add one half the time
-        if ((sum & 1) && (randomUint() & 1)) {
+        if ((sum & 1) && (rand() & 1)) {
             ++sum;
         }
         cropLength(genome, sum / 2);
@@ -425,4 +425,4 @@ Genome generateChildGenome(const std::vector<Genome> &parentGenomes)
     return genome;
 }
 
-} // end namespace BS
+

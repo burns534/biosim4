@@ -7,7 +7,7 @@
 #include "sensors-actions.h"
 #include "random.h"
 
-namespace BS {
+
 
 // Each gene specifies one synaptic connection in a neural net. Each
 // connection has an input (source) which is either a sensor or another neuron.
@@ -88,6 +88,6 @@ extern void unitTestConnectNeuralNetWiringFromGenome();
 extern float genomeSimilarity(const Genome &g1, const Genome &g2); // 0.0..1.0
 extern float geneticDiversity();  // 0.0..1.0
 
-} // end namespace BS
+
 
 #endif // GENOME_H_INCLUDED

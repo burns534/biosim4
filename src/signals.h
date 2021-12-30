@@ -7,7 +7,7 @@
 #include <cstdint>
 #include "basicTypes.h"
 
-namespace BS {
+
 
 // Usage: uint8_t magnitude = signals[layer][x][y];
 // or             magnitude = signals.getMagnitude(layer, Coord);
@@ -46,6 +46,6 @@ private:
     std::vector<Layer> data;
 };
 
-} // end namespace BS
+
 
 #endif // SIGNALS_H_INCLUDED

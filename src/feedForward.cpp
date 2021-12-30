@@ -5,8 +5,6 @@
 #include <cmath>
 #include "simulator.h"
 
-namespace BS {
-
 /********************************************************************************
 This function does a neural net feed-forward operation, from sensor (input) neurons
 through internal neurons to action (output) neurons. The feed-forward
@@ -93,6 +91,4 @@ std::array<float, Action::NUM_ACTIONS> Indiv::feedForward(unsigned simStep)
 
     return actionLevels;
 }
-
-} // end namespace BS
 

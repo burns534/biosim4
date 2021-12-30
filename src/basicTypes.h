@@ -52,9 +52,11 @@ Arithmetic
 #include <cstdint>
 #include <cmath>
 #include <algorithm>
+#include <stdlib.h>
+#include <string>
+#include <vector>
+#include <cassert>
 #include "random.h"
-
-namespace BS {
 
 extern bool unitTestBasicTypes();
 
@@ -128,6 +130,5 @@ public:
     Dir dir;
 };
 
-} // end namespace BS
 
 #endif // BASICTYPES_H_INCLUDED

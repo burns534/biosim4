@@ -6,9 +6,6 @@
 #include <array>
 #include <cassert>
 #include "simulator.h"
-#include "omp.h"
-
-namespace BS {
 
 // Given a factor in the range 0.0..1.0, return a bool with the
 // probability of it being true proportional to factor. For example, if
@@ -17,7 +14,7 @@ namespace BS {
 bool prob2bool(float factor)
 {
     assert(factor >= 0.0 && factor <= 1.0);
-    return (randomUint() / (float)RANDOM_UINT_MAX) < factor;
+    return (rand() / (float)RAND_MAX) < factor;
 }
 
 
@@ -234,6 +231,4 @@ void executeActions(Indiv &indiv, std::array<float, Action::NUM_ACTIONS> &action
         peeps.queueForMove(indiv, newLoc);
     }
 }
-
-} // end namespace BS
 

@@ -8,11 +8,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-#include "indiv.h"
 #include "params.h"
-#include "peeps.h"
 
-namespace BS {
+
 
 // This holds all data needed to construct one image frame. The data is
 // cached in this structure so that the image writer can work on it in
@@ -31,10 +29,9 @@ struct ImageFrameData {
 struct ImageWriter {
     ImageWriter();
     void startNewGeneration();
-    bool saveVideoFrame(unsigned simStep, unsigned generation);
+    // bool saveVideoFrame(unsigned simStep, unsigned generation);
     bool saveVideoFrameSync(unsigned simStep, unsigned generation);
     void saveGenerationVideo(unsigned generation);
-    void abort();
     void saveFrameThread(); // runs in a thread
     std::atomic<unsigned> droppedFrameCount;
 private:
@@ -50,6 +47,6 @@ private:
 
 extern ImageWriter imageWriter;
 
-} // end namespace BS
+
 
 #endif // IMAGEWRITER_H_INCLUDED

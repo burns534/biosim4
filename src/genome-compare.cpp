@@ -3,7 +3,7 @@
 #include <cassert>
 #include "simulator.h"
 
-namespace BS {
+
 
 // Approximate gene match: Has to match same source, sink, with similar weight
 //
@@ -172,4 +172,4 @@ float geneticDiversity()
     return diversity;
 }
 
-} // end namespace BS
+

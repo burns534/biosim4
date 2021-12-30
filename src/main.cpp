@@ -11,18 +11,17 @@
 // argv[1] must contain the name of the config file which will be read instead
 // of biosim4.ini. Any args after that are ignored. The simulator code is
 // in namespace BS (for "biosim").
-namespace BS {
-    void simulator(int argc, char **argv);
-}
+
+void simulator(int argc, char **argv);
 
 
 int main(int argc, char **argv)
 {
-    BS::unitTestBasicTypes(); // called only for unit testing of basic types
+    unitTestBasicTypes(); // called only for unit testing of basic types
 
     // Start the simulator with optional config filename (default "biosim4.ini").
     // See simulator.cpp and simulator.h.
-    BS::simulator(argc, argv); 
+    simulator(argc, argv); 
 
     return 0;
 }

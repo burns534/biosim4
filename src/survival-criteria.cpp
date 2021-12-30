@@ -4,7 +4,7 @@
 #include <utility>
 #include "simulator.h"
 
-namespace BS {
+
 
 // Returns true and a score 0.0..1.0 if passed, false if failed
 std::pair<bool, float> passedSurvivalCriterion(const Indiv &indiv, unsigned challenge)
@@ -342,4 +342,4 @@ std::pair<bool, float> passedSurvivalCriterion(const Indiv &indiv, unsigned chal
     }
 }
 
-} // end namespace BS
+

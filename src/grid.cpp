@@ -4,7 +4,7 @@
 #include <cassert>
 #include "simulator.h"
 
-namespace BS {
+
 
 // Allocates space for the 2D grid
 void Grid::init(uint16_t sizeX, uint16_t sizeY)
@@ -47,4 +47,4 @@ void visitNeighborhood(Coord loc, float radius, std::function<void(Coord)> f)
     }
 }
 
-} // end namespace BS
+

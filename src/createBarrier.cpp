@@ -3,8 +3,6 @@
 #include <cassert>
 #include "simulator.h"
 
-namespace BS {
-
 // This generates barrier points, which are grid locations with value
 // BARRIER. A list of barrier locations is saved in private member
 // Grid::barrierLocations and, for some scenarios, Grid::barrierCenters.
@@ -180,5 +178,3 @@ void Grid::createBarrier(unsigned barrierType)
         assert(false);
     }
 }
-
-} // end namespace BS

@@ -9,7 +9,7 @@
 #include "basicTypes.h"
 #include "genome-neurons.h"
 
-namespace BS {
+
 
 // Also see class Peeps.
 
@@ -35,6 +35,6 @@ struct Indiv {
     void printGenome() const;
 };
 
-} // end namespace BS
+
 
 #endif // INDIV_H_INCLUDED

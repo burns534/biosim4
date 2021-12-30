@@ -8,8 +8,6 @@
 #include "simulator.h"
 #include "imageWriter.h"
 
-namespace BS {
-
 // At the end of each generation, we save a video file (if p.saveVideo is true) and
 // print some genomic statistics to stdout (if p.updateGraphLog is true).
 
@@ -32,5 +30,3 @@ void endOfGeneration(unsigned generation)
         }
     }
 }
-
-} // end namespace BS

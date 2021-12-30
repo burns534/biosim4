@@ -8,7 +8,7 @@
 #include <functional>
 #include "basicTypes.h"
 
-namespace BS {
+
 
 // Grid is a somewhat dumb 2D container of unsigned 16-bit values.
 // Grid understands that the elements are either EMPTY, BARRIER, or
@@ -66,6 +66,6 @@ private:
 extern void visitNeighborhood(Coord loc, float radius, std::function<void(Coord)> f);
 extern void unitTestGridVisitNeighborhood();
 
-} // end namespace BS
+
 
 #endif // GRID_H_INCLUDED

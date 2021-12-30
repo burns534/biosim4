@@ -8,7 +8,7 @@
 #include <utility>
 #include "simulator.h"
 
-namespace BS {
+
 
 
 Peeps::Peeps()
@@ -26,12 +26,8 @@ void Peeps::init(unsigned population)
 // Safe to call during multithread mode.
 // Indiv will remain alive and in-world until end of sim step when
 // drainDeathQueue() is called.
-void Peeps::queueForDeath(const Indiv &indiv)
-{
-    #pragma omp critical
-    {
-        deathQueue.push_back(indiv.index);
-    }
+void Peeps::queueForDeath(const Indiv &indiv) {
+    deathQueue.push_back(indiv.index);
 }
 
 
@@ -52,11 +48,8 @@ void Peeps::drainDeathQueue()
 // of sim step when drainMoveQueue() is called.
 void Peeps::queueForMove(const Indiv &indiv, Coord newLoc)
 {
-    #pragma omp critical
-    {
-        auto record = std::make_pair<uint16_t, Coord>(uint16_t(indiv.index), Coord(newLoc));
-        moveQueue.push_back(record);
-    }
+    auto record = std::make_pair<uint16_t, Coord>(uint16_t(indiv.index), Coord(newLoc));
+    moveQueue.push_back(record);
 }
 
 
@@ -79,4 +72,4 @@ void Peeps::drainMoveQueue()
     moveQueue.clear();
 }
 
-} // end namespace BS
+

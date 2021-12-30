@@ -6,7 +6,7 @@
 #include <cmath>
 #include "basicTypes.h"
 
-namespace BS {
+
 
 // returns true only if a and b are the same to within
 // 4 digits accuracy
@@ -309,4 +309,4 @@ bool unitTestBasicTypes()
     return true;
 }
 
-} // end namespace BS
+

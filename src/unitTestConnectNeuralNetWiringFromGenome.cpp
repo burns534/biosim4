@@ -3,7 +3,7 @@
 #include <iostream>
 #include "simulator.h"
 
-namespace BS {
+
 
 void unitTestConnectNeuralNetWiringFromGenome()
 {
@@ -39,4 +39,4 @@ void unitTestConnectNeuralNetWiringFromGenome()
 //    }
 }
 
-} // end namespace BS
+

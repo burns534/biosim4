@@ -7,8 +7,6 @@
 
 #include <string>
 
-namespace BS {
-
 // Neuron Sources (Sensors) and Sinks (Actions)
 
 // These sensor, neuron, and action value ranges are here for documentation
@@ -90,6 +88,5 @@ extern std::string sensorName(Sensor sensor);
 extern std::string actionName(Action action);
 extern void printSensorsActions(); // list the names to stdout
 
-} // end namespace BS
 
 #endif // SENSORS_ACTIONS_H_INCLUDED

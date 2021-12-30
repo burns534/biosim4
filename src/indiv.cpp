@@ -4,7 +4,7 @@
 #include <cassert>
 #include "simulator.h"
 
-namespace BS {
+
 
 // This is called when any individual is spawned.
 // The responsiveness parameter will be initialized here to maximum value
@@ -27,4 +27,4 @@ void Indiv::initialize(uint16_t index_, Coord loc_, Genome &&genome_)
     createWiringFromGenome();
 }
 
-} // end namespace BS
+

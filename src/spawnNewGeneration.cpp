@@ -7,7 +7,7 @@
 #include <cassert>
 #include "simulator.h"
 
-namespace BS {
+
 
 extern std::pair<bool, float> passedSurvivalCriterion(const Indiv &indiv, unsigned challenge);
 
@@ -193,4 +193,4 @@ unsigned spawnNewGeneration(unsigned generation, unsigned murderCount)
     return parentGenomes.size();
 }
 
-} // end namespace BS
+

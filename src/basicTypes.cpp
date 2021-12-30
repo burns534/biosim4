@@ -1,19 +1,15 @@
 // basicTypes.cpp
-
-#include <cassert>
 #include "basicTypes.h"
-
-namespace BS {
 
 // This rotates a Dir value by the specified number of steps. There are
 // eight steps per full rotation. Positive values are clockwise; negative
 // values are counterclockwise. E.g., rotate(4) returns a direction 90
 // degrees to the right.
-constexpr Compass NW = BS::Compass::NW; constexpr Compass N = BS::Compass::N;
-constexpr Compass NE = BS::Compass::NE; constexpr Compass E = BS::Compass::E;
-constexpr Compass SE = BS::Compass::SE; constexpr Compass S = BS::Compass::S;
-constexpr Compass SW = BS::Compass::SW; constexpr Compass W = BS::Compass::W;
-constexpr Compass C = BS::Compass::CENTER;
+constexpr Compass NW = Compass::NW; constexpr Compass N = Compass::N;
+constexpr Compass NE = Compass::NE; constexpr Compass E = Compass::E;
+constexpr Compass SE = Compass::SE; constexpr Compass S = Compass::S;
+constexpr Compass SW = Compass::SW; constexpr Compass W = Compass::W;
+constexpr Compass C = Compass::CENTER;
 
 const Dir rotations[72] = { SW, W, NW, N, NE, E, SE, S,
                             S, SW, W, NW, N, NE, E, SE,
@@ -177,4 +173,3 @@ float Coord::raySameness(Dir d) const
     return raySameness(d.asNormalizedCoord());
 }
 
-} // end namespace BS

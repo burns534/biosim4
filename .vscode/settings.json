@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "__mutex_base": "cpp",
+        "cstdlib": "cpp",
+        "exception": "cpp",
+        "filesystem": "cpp",
+        "functional": "cpp",
+        "ios": "cpp",
+        "memory": "cpp",
+        "optional": "cpp",
+        "stdexcept": "cpp",
+        "typeinfo": "cpp"
+    }
+}

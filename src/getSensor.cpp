@@ -5,7 +5,7 @@
 #include <cmath>
 #include "simulator.h"
 
-namespace BS {
+
 
 float getPopulationDensityAlongAxis(Coord loc, Dir dir)
 {
@@ -326,7 +326,7 @@ float Indiv::getSensor(Sensor sensorNum, unsigned simStep) const
         break;
     case Sensor::RANDOM:
         // Returns a random sensor value in the range 0.0..1.0.
-        sensorVal = randomUint() / (float)UINT_MAX;
+        sensorVal = rand() / (float)RAND_MAX;
         break;
     case Sensor::SIGNAL0:
         // Returns magnitude of signal0 in the local neighborhood, with
@@ -369,4 +369,4 @@ float Indiv::getSensor(Sensor sensorNum, unsigned simStep) const
     return sensorVal;
 }
 
-} // end namespace BS
+

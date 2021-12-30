@@ -12,7 +12,7 @@
 //    3. Add an else clause to ParamManager::ingestParameter() in params.cpp.
 //    4. Add a line to the user's parameter file (default name biosim4.ini)
 
-namespace BS {
+
 
 enum class RunMode { STOP, RUN, PAUSE, ABORT };
 extern RunMode runMode;
@@ -88,6 +88,6 @@ private:
 // inside the params for future reference.
 Params paramsInit(int argc, char **argv);
 
-} // end namespace BS
+
 
 #endif // PARAMS_H_INCLUDED

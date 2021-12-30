@@ -8,7 +8,7 @@
 #include "params.h"
 #include "indiv.h"
 
-namespace BS {
+
 
 struct Indiv;
 extern class Grid grid;
@@ -49,6 +49,6 @@ private:
     std::vector<std::pair<uint16_t, Coord>> moveQueue;
 };
 
-} // end namespace BS
+
 
 #endif // PEEPS_H_INCLUDED

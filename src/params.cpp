@@ -18,7 +18,7 @@
 //    3. Add an else clause to ParamManager::ingestParameter() in params.cpp.
 //    4. Add a line to the user's parameter file (default name biosim4.ini)
 
-namespace BS {
+
 
 void ParamManager::setDefaults()
 {
@@ -316,4 +316,4 @@ void ParamManager::checkParameters()
 }
 
 
-} // end namespace BS
+

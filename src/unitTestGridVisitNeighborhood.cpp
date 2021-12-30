@@ -3,7 +3,7 @@
 #include <iostream>
 #include "simulator.h"
 
-namespace BS {
+
 
 void unitTestGridVisitNeighborhood()
 {
@@ -32,4 +32,4 @@ void unitTestGridVisitNeighborhood()
     visitNeighborhood(Coord { (int16_t)(p.sizeX-1), (int16_t)(p.sizeY-1) }, 2.0, printLoc);
 }
 
-} // end namespace BS
+

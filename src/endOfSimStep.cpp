@@ -5,8 +5,6 @@
 #include "simulator.h"
 #include "imageWriter.h"
 
-namespace BS {
-
 /*
 At the end of each sim step, this function is called in single-thread
 mode to take care of several things:
@@ -35,7 +33,7 @@ void endOfSimStep(unsigned simStep, unsigned generation)
             int16_t distanceFromRadioactiveWall = std::abs(indiv.loc.x - radioactiveX);
             if (distanceFromRadioactiveWall < p.sizeX / 2) {
                 float chanceOfDeath = 1.0 / distanceFromRadioactiveWall;
-                if (randomUint() / (float)RANDOM_UINT_MAX < chanceOfDeath) {
+                if (rand() / (float)RAND_MAX < chanceOfDeath) {
                     peeps.queueForDeath(indiv);
                 }
             }
@@ -88,5 +86,3 @@ void endOfSimStep(unsigned simStep, unsigned generation)
         }
     }
 }
-
-} // end namespace BS

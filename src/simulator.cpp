@@ -17,7 +17,7 @@
 #include "simulator.h"     // the simulator data structures
 #include "imageWriter.h"   // this is for generating the movies
 
-namespace BS {
+
 
 extern void initializeGeneration0();
 extern unsigned spawnNewGeneration(unsigned generation, unsigned murderCount);
@@ -114,7 +114,7 @@ void simulator(int argc, char **argv)
     paramManager.updateFromConfigFile();
     paramManager.checkParameters(); // check and report any problems
 
-    randomUint.initialize(); // seed the RNG for main-thread use
+    // randomUint.initialize(); // seed the RNG for main-thread use
 
     // Allocate container space. Once allocated, these container elements
     // will be reused in each new generation.
@@ -136,47 +136,37 @@ void simulator(int argc, char **argv)
 
     // Inside the parallel region, be sure that shared data is not modified. Do the
     // modifications in the single-thread regions.
-    #pragma omp parallel num_threads(p.numThreads) default(shared)
-    {
-        randomUint.initialize(); // seed the RNG, each thread has a private instance
+        // randomUint.initialize(); // seed the RNG, each thread has a private instance
 
-        while (runMode == RunMode::RUN && generation < p.maxGenerations) { // generation loop
-            #pragma omp single
-            murderCount = 0; // for reporting purposes
+    while (runMode == RunMode::RUN && generation < p.maxGenerations) { // generation loop
+        murderCount = 0; // for reporting purposes
 
-            for (unsigned simStep = 0; simStep < p.stepsPerGeneration; ++simStep) {
+        for (unsigned simStep = 0; simStep < p.stepsPerGeneration; ++simStep) {
 
-                // multithreaded loop: index 0 is reserved, start at 1
-                #pragma omp for schedule(auto)
-                for (unsigned indivIndex = 1; indivIndex <= p.population; ++indivIndex) {
-                    if (peeps[indivIndex].alive) {
-                        simStepOneIndiv(peeps[indivIndex], simStep);
-                    }
-                }
-
-                // In single-thread mode: this executes deferred, queued deaths and movements,
-                // updates signal layers (pheromone), etc.
-                #pragma omp single
-                {
-                    murderCount += peeps.deathQueueSize();
-                    endOfSimStep(simStep, generation);
+            // multithreaded loop: index 0 is reserved, start at 1
+            for (unsigned indivIndex = 1; indivIndex <= p.population; ++indivIndex) {
+                if (peeps[indivIndex].alive) {
+                    simStepOneIndiv(peeps[indivIndex], simStep);
                 }
             }
 
-            #pragma omp single
-            {
-                endOfGeneration(generation);
-                paramManager.updateFromConfigFile();
-                unsigned numberSurvivors = spawnNewGeneration(generation, murderCount);
-                if (numberSurvivors > 0 && (generation % p.genomeAnalysisStride == 0)) {
-                    displaySampleGenomes(p.displaySampleGenomes);
-                }
-                if (numberSurvivors == 0) {
-                    generation = 0;  // start over
-                } else {
-                    ++generation;
-                }
-            }
+            // In single-thread mode: this executes deferred, queued deaths and movements,
+            // updates signal layers (pheromone), etc.
+            murderCount += peeps.deathQueueSize();
+            endOfSimStep(simStep, generation);
+            
+        }
+
+        endOfGeneration(generation);
+        paramManager.updateFromConfigFile();
+        unsigned numberSurvivors = spawnNewGeneration(generation, murderCount);
+        if (numberSurvivors > 0 && (generation % p.genomeAnalysisStride == 0)) {
+            displaySampleGenomes(p.displaySampleGenomes);
+        }
+        if (numberSurvivors == 0) {
+            generation = 0;  // start over
+        } else {
+            ++generation;
         }
     }
     displaySampleGenomes(3); // final report, for debugging
@@ -188,4 +178,4 @@ void simulator(int argc, char **argv)
     //t.join();
 }
 
-} // end namespace BS
+

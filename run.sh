@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./bin/Debug/biosim4 $1
+./bin/Debug/biosim4

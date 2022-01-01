@@ -14,6 +14,7 @@
 #include <cassert>
 #include <utility>
 #include <algorithm>
+#include <unistd.h>
 #include "simulator.h"     // the simulator data structures
 #include "imageWriter.h"   // this is for generating the movies
 
@@ -29,6 +30,7 @@ Grid grid;        // The 2D world where the creatures live
 Signals signals;  // A 2D array of pheromones that overlay the world grid
 Peeps peeps;      // The container of all the individuals in the population
 ImageWriter imageWriter; // This is for generating the movies
+bool simulation_ended = false;
 
 // The paramManager maintains a private copy of the parameter values, and a copy
 // is available read-only through global variable p. Although this is not
@@ -60,10 +62,8 @@ The other important variables are:
 
     simStep - the current age of our agent, reset to 0 at the start of each generation.
          For many simulation scenarios, this matches our indiv.age member.
-    randomUint - global random number generator, a private instance is given to each thread
 **********************************************************************************************/
-void simStepOneIndiv(Indiv &indiv, unsigned simStep)
-{
+void simStepOneIndiv(Indiv &indiv, unsigned simStep) {
     ++indiv.age; // for this implementation, tracks simStep
     auto actionLevels = indiv.feedForward(simStep);
     executeActions(indiv, actionLevels);
@@ -92,7 +92,6 @@ The main simulator-wide data structures are:
 The important simulator-wide variables are:
     generation - starts at 0, then increments every time the agents die and reproduce.
     simStep - reset to 0 at the start of each generation; fixed number per generation.
-    randomUint - global random number generator
 
 The threads are:
     main thread - simulator
@@ -102,17 +101,15 @@ The threads are:
 ********************************************************************************/
 void simulator(int argc, char **argv)
 {
-    printSensorsActions(); // show the agents' capabilities
+    // printSensorsActions(); // show the agents' capabilities
 
     // Simulator parameters are available read-only through the global
     // variable p after paramManager is initialized.
-    // Todo: remove the hardcoded parameter filename.
     paramManager.setDefaults();
     paramManager.registerConfigFile("biosim4.ini");
     paramManager.updateFromConfigFile();
     paramManager.checkParameters(); // check and report any problems
 
-    // paramManager.appendImageDir(argv[1]); // file to store videos in
     // Allocate container space. Once allocated, these container elements
     // will be reused in each new generation.
     grid.init(p.sizeX, p.sizeY); // the land on which the peeps live
@@ -126,23 +123,21 @@ void simulator(int argc, char **argv)
     //unitTestConnectNeuralNetWiringFromGenome();
     //unitTestGridVisitNeighborhood();
 
-    unsigned generation = 0;
+    unsigned generation = 0, murderCount = 0;
     initializeGeneration0(); // starting population
     runMode = RunMode::RUN;
-    unsigned murderCount;
 
     // Inside the parallel region, be sure that shared data is not modified. Do the
     // modifications in the single-thread regions.
-        // randomUint.initialize(); // seed the RNG, each thread has a private instance
 
-    while (runMode == RunMode::RUN && generation < p.maxGenerations) { // generation loop
+    while (runMode == RunMode::RUN && generation < p.maxGenerations + 1 + p.videoSaveFirstFrames) { // generation loop
         murderCount = 0; // for reporting purposes
-
+        clock_t tic = clock();
         for (unsigned simStep = 0; simStep < p.stepsPerGeneration; ++simStep) {
 
             // multithreaded loop: index 0 is reserved, start at 1
             for (unsigned indivIndex = 1; indivIndex <= p.population; ++indivIndex) {
-                if (peeps[indivIndex].alive) {
+                if (peeps[indivIndex].alive) { // possibly avoid the branch prediciton failures here by putting peeps in different arrays
                     simStepOneIndiv(peeps[indivIndex], simStep);
                 }
             }
@@ -151,11 +146,15 @@ void simulator(int argc, char **argv)
             // updates signal layers (pheromone), etc.
             murderCount += peeps.deathQueueSize();
             endOfSimStep(simStep, generation);
-            
         }
-
+        if (generation == p.maxGenerations - 1) {
+            simulation_ended = true;
+        }
+        printf("generation loop elapsed: %fs\n", double(clock() - tic)/CLOCKS_PER_SEC);
+    
         endOfGeneration(generation);
-        paramManager.updateFromConfigFile();
+
+        // paramManager.updateFromConfigFile();
         unsigned numberSurvivors = spawnNewGeneration(generation, murderCount);
         if (numberSurvivors > 0 && (generation % p.genomeAnalysisStride == 0)) {
             displaySampleGenomes(p.displaySampleGenomes);
@@ -170,6 +169,8 @@ void simulator(int argc, char **argv)
 
     std::cout << "Simulator exit." << std::endl;
 
+
+    destroy_threads();
     // If imageWriter is in its own thread, stop it and wait for it here:
     //imageWriter.abort();
     //t.join();

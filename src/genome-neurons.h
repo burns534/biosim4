@@ -41,6 +41,7 @@ struct Gene { //__attribute__((packed)) Gene {
 typedef std::vector<Gene> Genome;
 
 
+
 // An individual's "brain" is a neural net specified by a set
 // of Genes where each Gene specifies one connection in the neural net (see
 // Genome comments above). Each neuron has a single output which is

@@ -28,8 +28,12 @@ extern class Grid grid;
 // reserved, i.e., .individuals[0] is not a valid individual.
 // This class does not manage properties inside Indiv except for the
 // Indiv's location in the grid and its aliveness.
-class Peeps {
-public:
+struct RenderData {
+    Coord loc;
+    uint8_t r, g, b;
+};
+
+struct Peeps {
     Peeps(); // makes zero individuals
     void init(unsigned population);
     void queueForDeath(const Indiv &);
@@ -43,10 +47,11 @@ public:
     // Direct access:
     Indiv & operator[](uint16_t index) { return individuals[index]; }
     Indiv const & operator[](uint16_t index) const { return individuals[index]; }
+    std::vector<Indiv> get_individuals();
 private:
     std::vector<Indiv> individuals; // Index value 0 is reserved
     std::vector<uint16_t> deathQueue;
-    std::vector<std::pair<uint16_t, Coord>> moveQueue;
+    std::vector<std::pair<uint16_t, Coord> > moveQueue;
 };
 
 

@@ -12,12 +12,8 @@
 // print some genomic statistics to stdout (if p.updateGraphLog is true).
 
 void endOfGeneration(unsigned generation) {
-    if (p.saveVideo &&
-            ((generation % p.videoStride) == 0
-                || generation <= p.videoSaveFirstFrames
-                || (generation >= p.replaceBarrierTypeGenerationNumber
-                    && generation <= p.replaceBarrierTypeGenerationNumber + p.videoSaveFirstFrames))) {
-        imageWriter.saveGenerationVideo(generation);
+    if (p.saveVideo && (generation % p.videoStride == 0 || generation < p.videoSaveFirstFrames)) {
+        imageWriter.save_generation_video(generation);
     }
 
     if (p.updateGraphLog && (generation == 1 || ((generation % p.updateGraphLogStride) == 0))) {

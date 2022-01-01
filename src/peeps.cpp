@@ -11,13 +11,10 @@
 
 
 
-Peeps::Peeps()
-{
-}
+Peeps::Peeps() {}
 
 
-void Peeps::init(unsigned population)
-{
+void Peeps::init(unsigned population) {
     // Index 0 is reserved, so add one:
     individuals.resize(population + 1);
 }
@@ -33,8 +30,8 @@ void Peeps::queueForDeath(const Indiv &indiv) {
 
 // Called in single-thread mode at end of sim step. This executes all the
 // queued deaths, removing the dead agents from the grid.
-void Peeps::drainDeathQueue()
-{
+// called before push_frame
+void Peeps::drainDeathQueue() {
     for (uint16_t index : deathQueue) {
         auto & indiv = peeps[index];
         grid.set(indiv.loc, 0);
@@ -46,8 +43,7 @@ void Peeps::drainDeathQueue()
 
 // Safe to call during multithread mode. Indiv won't move until end
 // of sim step when drainMoveQueue() is called.
-void Peeps::queueForMove(const Indiv &indiv, Coord newLoc)
-{
+void Peeps::queueForMove(const Indiv &indiv, Coord newLoc) {
     auto record = std::make_pair<uint16_t, Coord>(uint16_t(indiv.index), Coord(newLoc));
     moveQueue.push_back(record);
 }
@@ -56,8 +52,7 @@ void Peeps::queueForMove(const Indiv &indiv, Coord newLoc)
 // Called in single-thread mode at end of sim step. This executes all the
 // queued movements. Each movement is typically one 8-neighbor cell distance
 // but this function can move an individual any arbitrary distance.
-void Peeps::drainMoveQueue()
-{
+void Peeps::drainMoveQueue() {
     for (auto& moveRecord : moveQueue) {
         auto & indiv = peeps[moveRecord.first];
         Coord newLoc = moveRecord.second;
@@ -70,6 +65,10 @@ void Peeps::drainMoveQueue()
         }
     }
     moveQueue.clear();
+}
+
+std::vector<Indiv> Peeps::get_individuals() {
+    return this->individuals;
 }
 
 

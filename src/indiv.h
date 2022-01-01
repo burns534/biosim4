@@ -8,7 +8,7 @@
 #include <array>
 #include "basicTypes.h"
 #include "genome-neurons.h"
-
+#include "simulator.h"
 
 
 // Also see class Peeps.
@@ -18,6 +18,7 @@ struct Indiv {
     uint16_t index; // index into peeps[] container
     Coord loc;   // refers to a location in grid[][]
     Coord birthLoc;
+    uint8_t r, g, b;
     unsigned age;
     Genome genome;
     NeuralNet nnet;   // derived from .genome

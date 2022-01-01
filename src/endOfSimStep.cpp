@@ -19,8 +19,7 @@ mode to take care of several things:
    p.saveVideo is true).
 */
 
-void endOfSimStep(unsigned simStep, unsigned generation)
-{
+void endOfSimStep(unsigned simStep, unsigned generation) {
     if (p.challenge == CHALLENGE_RADIOACTIVE_WALLS) {
         // During the first half of the generation, the west wall is radioactive,
         // where X == 0. In the last half of the generation, the east wall is
@@ -76,13 +75,12 @@ void endOfSimStep(unsigned simStep, unsigned generation)
     signals.fade(0); // takes layerNum  todo!!!
 
     // saveVideoFrameSync() is the synchronous version of saveVideFrame()
-    if (p.saveVideo &&
-                ((generation % p.videoStride) == 0
-                 || generation <= p.videoSaveFirstFrames
-                 || (generation >= p.replaceBarrierTypeGenerationNumber
-                     && generation <= p.replaceBarrierTypeGenerationNumber + p.videoSaveFirstFrames))) {
-        if (!imageWriter.saveVideoFrameSync(simStep, generation)) {
-            std::cout << "imageWriter busy" << std::endl;
-        }
+    // if (p.saveVideo) {
+    //     if (!imageWriter.saveVideoFrameSync(simStep, generation)) {
+    //         std::cout << "imageWriter busy" << std::endl;
+    //     }
+    // }
+    if (p.saveVideo && (generation % p.videoStride == 0 || generation < p.videoSaveFirstFrames)) {
+        imageWriter.push_frame();
     }
 }

@@ -11,6 +11,8 @@
 #include <map>
 #include "params.h"
 
+#define MAX_FPS 100.0
+
 // To add a new parameter:
 //    1. Add a member to struct Params in params.h.
 //    2. Add a member and its default value to privParams in ParamManager::setDefaults()
@@ -68,6 +70,7 @@ void ParamManager::setDefaults()
     privParams.RNGSeed = 12345678;
     privParams.graphLogUpdateCommand = "/usr/bin/gnuplot --persist ./tools/graphlog.gp";
     sampleGenomeOutfile.open("./tools/nnet.txt", std::ofstream::out);
+    privParams.videoFPS = 25.0;
 }
 
 
@@ -140,6 +143,8 @@ void ParamManager::ingestParameter(std::string name, std::string val)
         privParams.sizeX = uVal; 
     } else if (name == "sizey" && isUint && uVal >= 2 && uVal <= (uint16_t)-1) {
         privParams.sizeY = uVal; 
+    } else if (name == "videoFPS" && isFloat && dVal >= 1.0) {
+        privParams.videoFPS = dVal <= MAX_FPS ? dVal : MAX_FPS;
     } else if (name == "challenge" && isUint && uVal < (uint16_t)-1) {
         privParams.challenge = uVal; 
     } else if (name == "genomeinitiallengthmin" && isUint && uVal > 0 && uVal < (uint16_t)-1) {

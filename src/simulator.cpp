@@ -31,6 +31,7 @@ Signals signals;  // A 2D array of pheromones that overlay the world grid
 Peeps peeps;      // The container of all the individuals in the population
 ImageWriter imageWriter; // This is for generating the movies
 bool simulation_ended = false;
+uint32_t generation = 0;
 
 // The paramManager maintains a private copy of the parameter values, and a copy
 // is available read-only through global variable p. Although this is not
@@ -123,14 +124,16 @@ void simulator(int argc, char **argv)
     //unitTestConnectNeuralNetWiringFromGenome();
     //unitTestGridVisitNeighborhood();
 
-    unsigned generation = 0, murderCount = 0;
+    unsigned murderCount = 0;
     initializeGeneration0(); // starting population
     runMode = RunMode::RUN;
+
+    imageWriter.start_threads();
 
     // Inside the parallel region, be sure that shared data is not modified. Do the
     // modifications in the single-thread regions.
 
-    while (runMode == RunMode::RUN && generation < p.maxGenerations + 1 + p.videoSaveFirstFrames) { // generation loop
+    while (runMode == RunMode::RUN && generation < p.maxGenerations + 1) { // generation loop
         murderCount = 0; // for reporting purposes
         clock_t tic = clock();
         for (unsigned simStep = 0; simStep < p.stepsPerGeneration; ++simStep) {
@@ -167,10 +170,11 @@ void simulator(int argc, char **argv)
     }
     displaySampleGenomes(3); // final report, for debugging
 
+    destroy_threads();
+
+
     std::cout << "Simulator exit." << std::endl;
 
-
-    destroy_threads();
     // If imageWriter is in its own thread, stop it and wait for it here:
     //imageWriter.abort();
     //t.join();

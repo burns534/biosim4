@@ -1,67 +1,59 @@
 #include "imageWriter.h"
-#define N_FRAME_THREADS 8
 #define N_VIDEO_THREADS 8
 // frame thread declarations
-// this could probably all be in the same array in a structure...
-static pthread_mutex_t frame_wait_lock[N_FRAME_THREADS];
-static pthread_cond_t frame_wait_cond[N_FRAME_THREADS];
-static pthread_mutex_t frame_write_lock[N_FRAME_THREADS]; // mutex pool
-static pthread_cond_t frame_write_cond[N_FRAME_THREADS];
-static pthread_t frame_threads[N_FRAME_THREADS]; // thread pool
-static std::vector<Indiv> render_cache[N_FRAME_THREADS]; // could possibly be optimized somehow. copying the entire individual is not necessary
-static bool frame_thread_wait[N_FRAME_THREADS];
-static bool frame_thread_no_write[N_FRAME_THREADS];
-static uint8_t next_to_push = 0;
-static std::vector<cv::Mat> frames; // frames vector for building the video for each generation
-static uint8_t indices[N_FRAME_THREADS];
-static uint8_t frame_queue_index = 0;
-static bool frame_threads_should_exit = false;
+static pthread_mutex_t frame_wait_lock;
+static pthread_cond_t frame_wait_cond;
+static pthread_t frame_thread;
+static bool frame_wait = true, frame_thread_should_exit = false;
+static std::vector<Indiv> render_cache;
+static uint32_t frame_cached_generation;
+static std::vector<cv::Mat> global_frames; // frames vector for building the video for each generation
+
 // video thread declarations
+static bool video_wait[N_VIDEO_THREADS];
+static pthread_cond_t video_wait_cond[N_VIDEO_THREADS];
+static pthread_mutex_t video_wait_lock[N_VIDEO_THREADS];
 static pthread_t video_threads[N_VIDEO_THREADS];
 static uint8_t video_queue_index = 0;
 static std::vector<cv::Mat> cached_frames[N_VIDEO_THREADS]; // holds the cached vector
 static char filename[100];
-static unsigned cached_generation;
+static unsigned cached_generations[N_VIDEO_THREADS];
+static bool video_threads_should_exit = false;
+static uint8_t indices[N_VIDEO_THREADS];
 
-
-// circular queue for thread pool
-static inline uint8_t frame_thread_queue_front() {
-    if (frame_queue_index < N_FRAME_THREADS) {
-        return frame_queue_index++;
-    } else {
-        return frame_queue_index = 0;
-    }
-}
-
+// circular queue for video thread pool
 static inline uint8_t video_thread_queue_front() {
     if (video_queue_index < N_VIDEO_THREADS) {
         return video_queue_index++;
     } else {
-        return video_queue_index = 0;
+        video_queue_index = 0;
+        return video_queue_index++;
     }
 }
 
-
-
-static void * frame_write(void *arg) {
+static void * frame_writer(void *arg) {
     using namespace cv;
-    // get index from argument
-    uint8_t index = *(uint8_t *)arg;
+    Scalar size = Scalar (255, 255, 255);
+    int rows = p.displayScale * p.sizeX,
+        cols = p.displayScale * p.sizeY;
     while (1) {
-        printf("ft %hhu I'm on standby\n", index);
-        // attempt to lock frame write
-        pthread_mutex_lock(&frame_wait_lock[index]);
-        // now await signal
-        while (frame_thread_wait[index])
-            pthread_cond_wait(&frame_wait_cond[index], &frame_wait_lock[index]);
-        printf("ft %hhu I'm processing the image\n", index);
+        // lock the predicate
+        pthread_mutex_lock(&frame_wait_lock);
+        // wait for work
+        while (frame_wait && !frame_thread_should_exit) {
+            pthread_cond_wait(&frame_wait_cond, &frame_wait_lock);
+        }
 
-        // create image frame
-        Mat image = Mat(p.sizeX * p.displayScale, p.sizeY * p.displayScale, CV_8UC3, Scalar (255, 255, 255));
+        if (frame_thread_should_exit) {
+            pthread_mutex_unlock(&frame_wait_lock);
+            pthread_exit(NULL);
+        }
+// create image frame
+        Mat image = Mat(rows, cols, CV_8UC3, size);
 
         // process image here
         for (uint16_t i = 1; i <= p.population; i++) {
-            const Indiv &indiv = render_cache[index][i];
+            const Indiv &indiv = render_cache[i];
             if (indiv.alive) { // possibly optimize this as well
                 // draw peep on the image
                 circle(image, 
@@ -72,249 +64,160 @@ static void * frame_write(void *arg) {
                     LINE_8);
             }
         }
-        printf("ft %hhu I'm done processing the image\n", index);
-        // now attempt to write the frame
-        // to determine this, it needs to check whose turn it is
-        // and wait for its predecessor if it is not its turn
-        if (next_to_push == index) {
-            printf("ft %hhu It's my turn already!\n", index);
-            frames.push_back(image);
-        } else {
-            printf("ft %hhu It's not my turn... I'l wait\n", index);
-            // try to lock frame write mutex
-            pthread_mutex_lock(&frame_write_lock[index]);
-            while (frame_thread_no_write[index])
-                pthread_cond_wait(&frame_write_cond[index], &frame_write_lock[index]);
-            
-            // now push the frame
-            frames.push_back(image);
-            printf("ft %hhu It's my turn now!\n", index);
-            // unlock the frame_thread_no_write variable
-            pthread_mutex_unlock(&frame_write_lock[index]);
+
+        // push the frame
+        global_frames.push_back(image);
+
+        // if necessary, save the video
+
+        if (p.saveVideo && (global_frames.size() == p.stepsPerGeneration) && ((frame_cached_generation < p.videoSaveFirstFrames) || (frame_cached_generation % p.videoStride == 0))) {
+            // get available video writer thread
+            uint8_t front = video_thread_queue_front();
+            // attempt to lock its predicate variable
+            pthread_mutex_lock(&video_wait_lock[front]);
+            // cache generation
+            cached_generations[front] = frame_cached_generation;
+            // cache global_frames
+            cached_frames[front] = global_frames;
+            // update its predicate
+            video_wait[front] = false;
+            // signal to wake up
+            pthread_cond_signal(&video_wait_cond[front]);
+            // unlock predicate
+            pthread_mutex_unlock(&video_wait_lock[front]);
+            // clear global frames
+            global_frames.clear();
         }
-        
-        // calculate index of successor
-        uint8_t next = (next_to_push + 1) % N_FRAME_THREADS;
 
-        // notify successor, who may or may not be waiting
-        printf("ft %hhu I'm notifying my successor %hhu\n", index, next);
-        // lock write predicate of successor
-        pthread_mutex_lock(&frame_write_lock[next]);
-        // update write predicate for successor
-        frame_thread_no_write[next] = false;
-        // update next in line to push
-        next_to_push = next;
-        // awaken successor if waiting
-        pthread_cond_signal(&frame_write_cond[next]);
-        // unlock predicate
-        pthread_mutex_unlock(&frame_write_lock[next]);
-        
-        // update main predicate for this thread
-        frame_thread_wait[index] = true;
-
-        // unlock frame wait predicate
-        pthread_mutex_unlock(&frame_wait_lock[index]);
-
-
-        printf("ft %hhu I unlocked my main mutex. I'm done\n", index);
+        // update predicate
+        frame_wait = true;
+        // unlock the predicate
+        pthread_mutex_unlock(&frame_wait_lock);
     }
 }
 
-void destroy_threads() {
-    for (uint8_t i = 0; i < N_FRAME_THREADS; i++) {
-        frame_threads_should_exit = true;
-        pthread_join(frame_threads[i], NULL);
-        pthread_mutex_destroy(&frame_write_lock[i]);
-        pthread_mutex_destroy(&frame_wait_lock[i]);
-        pthread_cond_destroy(&frame_write_cond[i]);
-        pthread_cond_destroy(&frame_wait_cond[i]);
-    }
-}
-
-// executes inside frame thread
-// static void * save_frame_exec(void *arg) {
-//     using namespace cv;
-//     // get index from argument
-//     uint16_t index = *(uint16_t *)arg;
-//     std::vector<Indiv> *render_data = &render_cache[index];
-//     while (1) {
-       
-//         // create image frame
-//         Mat image = Mat(p.sizeX * p.displayScale, p.sizeY * p.displayScale, CV_8UC3, Scalar (255, 255, 255));
-
-//         for (uint16_t index = 1; index <= p.population; index++) {
-//             const Indiv &indiv = render_data->at(index);
-//             if (indiv.alive) { // possibly optimize this as well
-//                 // draw peep on the image
-//                 circle(image, 
-//                     Point(indiv.loc.x * p.displayScale, ((p.sizeY - indiv.loc.y) - 1) * p.displayScale),
-//                     p.agentSize,
-//                     Scalar(indiv.b, indiv.g, indiv.r), // bgr
-//                     FILLED,
-//                     LINE_8);
-//             }
-//         }
-//         // write frame
-//         frames.push_back(image);
-      
-//         if (simulation_ended) return NULL;
-//     }
-// }
-
-
-static void * save_generation_video_exec(void *arg) {
+static void * video_write(void *arg) {
     using namespace cv;
-    // while (1) {
-    //     // try to lock cached generation
-    //     pthread_mutex_lock(&video_write_lock);
-    //     // wait for signal to write video
-    //     while (!should_write_video)
-    //         pthread_cond_wait(&video_write_condition, &video_write_lock);
-        
-    //     clock_t tic = clock();
+    double fps = p.videoFPS;
+    Size size = Size(p.displayScale * p.sizeX, p.displayScale * p.sizeY);
+    uint8_t index = *(uint8_t *)arg;
+    while (1) {
+        // try to lock video wait predicate
+        pthread_mutex_lock(&video_wait_lock[index]);
+        // printf("v%hhu: video_write standby\n", index);
+        // wait for signal to process video
+        while (video_wait[index] && !video_threads_should_exit) {
+            pthread_cond_wait(&video_wait_cond[index], &video_wait_lock[index]);
+        }
 
-    //     if (cached_frames.empty()) {
-    //         puts("error: ImageWriter::save_generation_video: no frames to write!");
-    //         should_write_video = false;
-    //         pthread_mutex_unlock(&video_write_lock);
-    //         continue;
-    //     }
-    //     snprintf(filename, 100, "%s/gen-%06u.mp4", p.imageDir.c_str(), *(unsigned *)arg);
-    //     // printf("saving %s\n", filename);
-    //     unsigned width = cached_frames.front().rows, height = cached_frames.front().cols;
-    //     VideoWriter vw;
-    //     // 0x7634706d is codec for mp4
-    //     // 20fps
-    //     vw.open(filename, 0x7634706d, 20.0, Size(width, height));
+        if (video_threads_should_exit) {
+            // printf("v%hhu: video_write exiting exit 1\n", index);
+            pthread_mutex_unlock(&video_wait_lock[index]);
+            pthread_exit(NULL);
+        }
 
-    //     if (!vw.isOpened()) {
-    //         puts("error: ImageWriter::save_generation_video: could not open cv::VideoWriter");
-    //     }
+        // process video
+        // assign temporary for appropriate cached frames
+        const std::vector<Mat> &frames = cached_frames[index];
 
-    //     cv::setNumThreads(6);
-        
-    //     for (auto it = cached_frames.begin(); it != cached_frames.end(); it++) {
-    //         vw.write(*it);
-    //     }
-    //     cached_frames.clear();
+        // printf("v%hhu video_write processing video with frame count %lu\n", index, frames.size());
 
-    //     should_write_video = false;
-    //     // unlock video write lock and access to cached generation
-    //     pthread_mutex_unlock(&video_write_lock);
+        if (frames.empty()) {
+            // this should be impossible
+            printf("error: video_writer %hhu: no frames to write!", index);
+            pthread_mutex_unlock(&video_wait_lock[index]);
+            destroy_threads();
+            pthread_exit(NULL);
+        }
 
-    //     printf("took %fs to save %s\n", double(clock() - tic)/CLOCKS_PER_SEC, filename);
-    //     if (simulation_ended) return NULL;
-    // }
+        snprintf(filename, 100, "%s/gen-%06u.mp4", p.imageDir.c_str(), cached_generations[index]);
+    
+        VideoWriter vw;
+        // 0x7634706d is codec for mp4
+        vw.open(filename, 0x7634706d, fps, size);
+
+        if (!vw.isOpened()) {
+            printf("error: video_writer %hhu: could not open cv::VideoWriter", index);
+            pthread_mutex_unlock(&video_wait_lock[index]);
+            vw.release(); // must call explicitly
+            destroy_threads();
+            pthread_exit(NULL);
+        }
+
+// TODO: change this to use ffmpeg with hardware acceleration
+        for (auto it = frames.begin(); it != frames.end(); it++) {
+            vw.write(*it);
+        }
+
+        // reset predicate
+        video_wait[index] = true;
+
+        // printf("v%hhu video_write video processing complete\n", index);
+
+        if (video_threads_should_exit) {
+            // printf("v%hhu: video_write exiting exit 2\n", index);
+            pthread_mutex_unlock(&video_wait_lock[index]);
+            // must call this explicitly before exiting the thread
+            // or else the video will be corrupted
+            vw.release();
+            pthread_exit(NULL);
+        }
+
+        // unlock predicate
+        pthread_mutex_unlock(&video_wait_lock[index]);
+    }
 }
 
-ImageWriter::ImageWriter() {
-    for (uint8_t i = 0; i < N_FRAME_THREADS; i++) {
-        indices[i] = i;
-        // create thread and supply it with its own index
-        pthread_create(&frame_threads[i], NULL, frame_write, indices + i);
-        pthread_mutex_init(&frame_wait_lock[i], NULL);
-        pthread_mutex_init(&frame_write_lock[i], NULL);
-        pthread_cond_init(&frame_wait_cond[i], NULL);
-        pthread_cond_init(&frame_write_cond[i], NULL);
-        frame_thread_no_write[i] = true;
-        frame_thread_wait[i] = true;
-    }
+ImageWriter::ImageWriter() {}
 
-    // pthread_create(&video_thread, NULL, save_generation_video_exec, &cached_generation);
+void ImageWriter::start_threads() {
+    frame_wait = true;
+    pthread_mutex_init(&frame_wait_lock, NULL);
+    pthread_cond_init(&frame_wait_cond, NULL);
+    pthread_create(&frame_thread, NULL, frame_writer, NULL);
+
+// initialize video threads and their data
+    for (uint8_t i = 0; i < N_VIDEO_THREADS; i++) {
+        indices[i] = i;
+        video_wait[i] = true;
+        pthread_mutex_init(&video_wait_lock[i], NULL);
+        pthread_cond_init(&video_wait_cond[i], NULL);
+        pthread_create(&video_threads[i], NULL, video_write, indices + i);
+    }
 }
 
 void ImageWriter::push_frame() {
-    // get front of queue
-    uint8_t index = frame_thread_queue_front();
     // attempt to lock the mutex associated selected thread
-    pthread_mutex_lock(&frame_wait_lock[index]);
+    pthread_mutex_lock(&frame_wait_lock);
     // once successful, cache the corresponding frame data
-    render_cache[index] = peeps.get_individuals();
+    render_cache = peeps.get_individuals();
+    // printf("pushing frame %u and assigning generation %u to thread %hhu\n", ++frame_count, generation, index);
+    // cache current generation
+    frame_cached_generation = generation;
     // tell thread it is allowed to write frame
-    frame_thread_wait[index] = false;
+    frame_wait = false;
     // wake up the thread
-    pthread_cond_signal(&frame_wait_cond[index]);
+    pthread_cond_signal(&frame_wait_cond);
     // unlock frame wait lock
-    pthread_mutex_unlock(&frame_wait_lock[index]);
+    pthread_mutex_unlock(&frame_wait_lock);
     // return
 }
 
-// void ImageWriter::push_frame() {
-//     // puts("waiting to push frame");
-//     // attempt to lock cached individuals
-//     pthread_mutex_lock(&frame_write_lock);
-//     // cache individuals from the current frame
-//     // from globally defined peeps instance
-//     // puts("caching individuals");
-//     cached_individuals = peeps.get_individuals();
-//     should_write_frame = true;
-//     // signal frame thread to write the frame
-//     pthread_cond_signal(&frame_write_condition);
-//     // unlock the cached individuals frame for use by thread
-//     pthread_mutex_unlock(&frame_write_lock);
-//     // puts("pushed frame successfully");
-// }
+void destroy_threads() {
+    frame_thread_should_exit = true;
+    pthread_cond_signal(&frame_wait_cond);
+    pthread_join(frame_thread, NULL);
+    pthread_cond_destroy(&frame_wait_cond);
+    pthread_mutex_destroy(&frame_wait_lock);
 
-#include <unistd.h>
-// test synchronously first
-void ImageWriter::save_generation_video(unsigned generation) {
-    puts("im sleeping 2 seconds to let the frames finish");
-    sleep(2);
-    using namespace cv;
-    clock_t tic = clock();
-
-    if (frames.empty()) {
-        puts("error: ImageWriter::save_generation_video: no frames to write!");
-        return;
+    video_threads_should_exit = true;
+    for (uint8_t i = 0; i < N_VIDEO_THREADS; i++) {
+        pthread_cond_signal(&video_wait_cond[i]);
     }
 
-    snprintf(filename, 100, "%s/gen-%06u.mp4", p.imageDir.c_str(), generation);
-    // printf("saving %s\n", filename);
-    unsigned width = frames.front().rows, height = frames.front().cols;
-    VideoWriter vw;
-    // 0x7634706d is codec for mp4
-    // 20fps
-    vw.open(filename, 0x7634706d, 20.0, Size(width, height));
-
-    if (!vw.isOpened()) {
-        puts("error: ImageWriter::save_generation_video: could not open cv::VideoWriter");
+    for (uint8_t i = 0; i < N_VIDEO_THREADS; i++) {
+        pthread_join(video_threads[i], NULL);
+        pthread_cond_destroy(&video_wait_cond[i]);
+        pthread_mutex_destroy(&video_wait_lock[i]);
     }
-
-    cv::setNumThreads(6);
-    
-    for (auto it = frames.begin(); it != frames.end(); it++) {
-        vw.write(*it);
-    }
-    frames.clear();
-    printf("took %fs to save %s\n", double(clock() - tic)/CLOCKS_PER_SEC, filename);
-
-
-
-
-
-    //  // try to lock cached generation and cached_frames
-    // pthread_mutex_lock(&video_write_lock);
-    // // wait for permission to copy the frame given by the frame push execution
-    // // this is required to prevent this function from locking the frame write
-    // // mutex before the frame write thread is able to from the previous
-    // // frame push call and then saving the next video with the first frame
-    // // as the what should've been the last frame of the current video
-    // while (frames.size() < p.stepsPerGeneration)
-    //     pthread_cond_wait(&frame_copy_condition, &video_write_lock);
-    // // lock frame to prevent changed while caching
-    // pthread_mutex_lock(&frame_write_lock);
-    // // update cached generation and cached_frames
-    // cached_generation = generation;
-    // cached_frames = frames;
-    // // signal video writer to attempt the write
-    // pthread_cond_signal(&video_write_condition);
-    // should_write_video = true;
-    // frames.clear(); // clear frames before continuing main loop
-    // // unlock frames to allow program to proceed
-    // pthread_mutex_unlock(&frame_write_lock);
-    // // unlocked cached generation and cached frames
-    // pthread_mutex_unlock(&video_write_lock);
-    // // // unlock frame copy
-    // // pthread_mutex_unlock(&frame_copy_lock);
-    // // continue the simulation on main thread
 }

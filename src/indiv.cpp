@@ -30,7 +30,7 @@ void Indiv::initialize(uint16_t index_, Coord loc_, Genome &&genome_)
     // color[0] = genome.size() & 0xF | ((genome.front().sourceNum & 0xF) << 4);
     // color[1] = genome..sourceType & 0xF | ((genome.back().sourceNum & 0xF << 4);
     // color[2] = 
-  // TODO: fix this  
+// TODO: fix this  
     std::uint8_t c = ((genome.size() & 1)
          | ((genome.front().sourceType)    << 1)
          | ((genome.back().sourceType)     << 2)

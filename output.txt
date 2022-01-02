@@ -1,0 +1,25 @@
+ffmpeg version 4.4.1 Copyright (c) 2000-2021 the FFmpeg developers
+  built with Apple clang version 13.0.0 (clang-1300.0.29.3)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/4.4.1_4 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gnutls --enable-gpl --enable-libaom --enable-libbluray --enable-libdav1d --enable-libmp3lame --enable-libopus --enable-librav1e --enable-librist --enable-librubberband --enable-libsnappy --enable-libsrt --enable-libtesseract --enable-libtheora --enable-libvidstab --enable-libvmaf --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-libxvid --enable-lzma --enable-libfontconfig --enable-libfreetype --enable-frei0r --enable-libass --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenjpeg --enable-libspeex --enable-libsoxr --enable-libzmq --enable-libzimg --disable-libjack --disable-indev=jack --enable-avresample --enable-videotoolbox
+  libavutil      56. 70.100 / 56. 70.100
+  libavcodec     58.134.100 / 58.134.100
+  libavformat    58. 76.100 / 58. 76.100
+  libavdevice    58. 13.100 / 58. 13.100
+  libavfilter     7.110.100 /  7.110.100
+  libavresample   4.  0.  0 /  4.  0.  0
+  libswscale      5.  9.100 /  5.  9.100
+  libswresample   3.  9.100 /  3.  9.100
+  libpostproc    55.  9.100 / 55.  9.100
+Input #0, rawvideo, from 'pipe:':
+  Duration: N/A, start: 0.000000, bitrate: 629145 kb/s
+  Stream #0:0: Video: rawvideo (BGR[24] / 0x18524742), bgr24, 1024x1024, 629145 kb/s, 25 tbr, 25 tbn, 25 tbc
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> h264 (h264_videotoolbox))
+Output #0, mp4, to 'images/gen-000001.mp4':
+  Metadata:
+    encoder         : Lavf58.76.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, progressive), 1024x1024, q=2-31, 200 kb/s, 25 fps, 12800 tbn
+    Metadata:
+      encoder         : Lavc58.134.100 h264_videotoolbox
+frame=    1 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=N/A    frame=   53 fps=0.0 q=-0.0 size=       0kB time=00:00:01.72 bitrate=   0.2kbits/s speed=3.41x    frame=  110 fps=109 q=-0.0 size=       0kB time=00:00:04.00 bitrate=   0.1kbits/s speed=3.96x    frame=  168 fps=110 q=-0.0 size=       0kB time=00:00:06.32 bitrate=   0.1kbits/s speed=4.15x    frame=  227 fps=111 q=-0.0 size=       0kB time=00:00:08.68 bitrate=   0.0kbits/s speed=4.26x    frframe=  250 fps=103 q=-0.0 Lsize=     250kB time=00:00:09.92 bitrate= 206.5kbits/s speed= 4.1x    
+video:246kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 1.555641%

@@ -16,7 +16,6 @@ static pthread_mutex_t video_wait_lock[N_VIDEO_THREADS];
 static pthread_t video_threads[N_VIDEO_THREADS];
 static uint8_t video_queue_index = 0;
 static std::vector<cv::Mat> cached_frames[N_VIDEO_THREADS]; // holds the cached vector
-static char filename[100];
 static unsigned cached_generations[N_VIDEO_THREADS];
 static bool video_threads_should_exit = false;
 static uint8_t indices[N_VIDEO_THREADS];
@@ -96,10 +95,16 @@ static void * frame_writer(void *arg) {
     }
 }
 
+#include <unistd.h>
+
 static void * video_write(void *arg) {
     using namespace cv;
     double fps = p.videoFPS;
+    // unsigned width = p.displayScale * p.sizeX, height = p.displayScale * p.sizeY;
+    char ffmpeg_command[200], filename[100];
+    // snprintf(ffmpeg_command, 200, "ffmpeg -y -f rawvideo -vcodec rawvideo -framerate %lf -pix_fmt bgr24 -s %ux%u -i - -c:v h264_videotoolbox -r %lf ", fps, width, height, fps);
     Size size = Size(p.displayScale * p.sizeX, p.displayScale * p.sizeY);
+    
     uint8_t index = *(uint8_t *)arg;
     while (1) {
         // try to lock video wait predicate
@@ -109,6 +114,7 @@ static void * video_write(void *arg) {
         while (video_wait[index] && !video_threads_should_exit) {
             pthread_cond_wait(&video_wait_cond[index], &video_wait_lock[index]);
         }
+
 
         if (video_threads_should_exit) {
             // printf("v%hhu: video_write exiting exit 1\n", index);
@@ -120,8 +126,8 @@ static void * video_write(void *arg) {
         // assign temporary for appropriate cached frames
         const std::vector<Mat> &frames = cached_frames[index];
 
-        // printf("v%hhu video_write processing video with frame count %lu\n", index, frames.size());
-
+        printf("v%hhu video_write processing video with frame count %lu\n", index, frames.size());
+    
         if (frames.empty()) {
             // this should be impossible
             printf("error: video_writer %hhu: no frames to write!", index);
@@ -130,10 +136,17 @@ static void * video_write(void *arg) {
             pthread_exit(NULL);
         }
 
+        
+
+        // snprintf(filename, 100, "%s/gen-%06u.mp4 2> /dev/null", p.imageDir.c_str(), cached_generations[index]);
         snprintf(filename, 100, "%s/gen-%06u.mp4", p.imageDir.c_str(), cached_generations[index]);
-    
+
+        // strncat(ffmpeg_command, filename, 100);
+
+        // open pipe to pipe matrix to ffmpeg with hardware acceleration
+        // FILE *pipeout = popen(ffmpeg_command, "w");
         VideoWriter vw;
-        // 0x7634706d is codec for mp4
+        // // 0x7634706d is codec for mp4
         vw.open(filename, 0x7634706d, fps, size);
 
         if (!vw.isOpened()) {
@@ -147,12 +160,18 @@ static void * video_write(void *arg) {
 // TODO: change this to use ffmpeg with hardware acceleration
         for (auto it = frames.begin(); it != frames.end(); it++) {
             vw.write(*it);
+            // fwrite(it->data, it->elemSize(), width * height, pipeout);
         }
+
+        // fflush(pipeout);
+        // fclose(pipeout);
+
+        // sleep(20);
 
         // reset predicate
         video_wait[index] = true;
 
-        // printf("v%hhu video_write video processing complete\n", index);
+        printf("v%hhu video_write video processing complete\n", index);
 
         if (video_threads_should_exit) {
             // printf("v%hhu: video_write exiting exit 2\n", index);

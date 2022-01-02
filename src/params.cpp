@@ -143,7 +143,7 @@ void ParamManager::ingestParameter(std::string name, std::string val)
         privParams.sizeX = uVal; 
     } else if (name == "sizey" && isUint && uVal >= 2 && uVal <= (uint16_t)-1) {
         privParams.sizeY = uVal; 
-    } else if (name == "videoFPS" && isFloat && dVal >= 1.0) {
+    } else if (name == "videofps" && isFloat && dVal >= 1.0) {
         privParams.videoFPS = dVal <= MAX_FPS ? dVal : MAX_FPS;
     } else if (name == "challenge" && isUint && uVal < (uint16_t)-1) {
         privParams.challenge = uVal; 

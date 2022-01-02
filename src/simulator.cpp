@@ -170,10 +170,12 @@ void simulator(int argc, char **argv)
     }
     displaySampleGenomes(3); // final report, for debugging
 
+    std::cout << "destroying threads" << "\n";
+
     destroy_threads();
 
 
-    std::cout << "Simulator exit." << std::endl;
+    std::cout << "Simulator exit" << "\n";
 
     // If imageWriter is in its own thread, stop it and wait for it here:
     //imageWriter.abort();
